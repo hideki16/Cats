@@ -15,7 +15,7 @@ protocol NetworkService {
 final class DefaultNetworkService: NetworkService {
     
     func request<Request: DataRequest>(_ request: Request, completion: @escaping (Result<Request.Response, Error>) -> Void) {
-    
+        
         guard var urlComponent = URLComponents(string: request.url) else {
             let error = NSError(
                 domain: ErrorResponse.invalidEndpoint.rawValue,
@@ -74,5 +74,7 @@ final class DefaultNetworkService: NetworkService {
 }
 
 enum ErrorResponse: String {
-    case invalidEndpoint = "endpoint provided does bnot exist"
+    case invalidEndpoint = "endpoint provided does not exist"
+    case apiError = "something went wrong with api"
+    case invalidResponse = "there is some problem with the response"
 }

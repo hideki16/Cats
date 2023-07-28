@@ -9,6 +9,8 @@ import UIKit
 
 class CatsList: UIViewController {
     
+    private let viewModel: CatsListViewModel
+    
     private lazy var collectionView: UICollectionView = {
         var collection = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout.init())
         collection.translatesAutoresizingMaskIntoConstraints = false
@@ -24,15 +26,46 @@ class CatsList: UIViewController {
         return collection
     }()
     
-    override func viewDidLoad() {
-        self.setViews()
     
+    init(viewModel: CatsListViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    
+    override func viewDidLoad() {
+        self.fetchCats()
+        
+        self.setViews()
         self.addSubviews()
         self.setContraints()
+        
+        self.bindViewModelEvent()
+        
+    }
+    
+    private func bindViewModelEvent() {
+        viewModel.onFetchCatsSucceed = { [weak self] in
+            DispatchQueue.main.async {
+                self?.collectionView.reloadData()
+            }
+        }
+        
+        viewModel.onFetchCatsFailure = { error in
+            print(error)
+        }
     }
     
     @objc private func refresh() {
-        
+        self.fetchCats()
+    }
+    
+    func fetchCats() {
+        viewModel.fetchCats()
     }
 }
 
@@ -66,17 +99,19 @@ extension CatsList: ViewCodeProtocol {
 extension CatsList: UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? CatsListCell
-        cell?.backgroundColor = .red
-        return cell ?? UICollectionViewCell()
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? CatsListCell else {
+            return UICollectionViewCell()
+        }
+        cell.bindViewWith(cat: viewModel.cats[indexPath.row])
+        return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        return viewModel.cats.count
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: self.collectionView.frame.width/4 - 10 , height: self.collectionView.frame.width/4 - 10)
+        return CGSize(width: self.collectionView.frame.width/2 - 20 , height: self.collectionView.frame.width/2 - 20)
     }
     
 }

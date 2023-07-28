@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+protocol ViewCodeProtocol {
+    func setViews()
+    func addSubviews()
+    func setContraints()
+}
